@@ -339,6 +339,8 @@ class CommsHandler:
 
             try:
                 msg: Message = self.tx_queue.get_nowait()
+                print(msg.msg_type)
+                print(msg.payload)
                 self._send_frame(msg.msg_type, msg.payload)
                 frames_tx += 1
             except Empty:
