@@ -55,7 +55,7 @@ class ControlHandler:
         v = 0.5
         w = error * 0.001   # ganancia proporcional """
 
-        return 1.0, 0
+        return 0.5, 0
 
     def run(self):
         while not self.stop_event.is_set():
