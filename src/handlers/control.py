@@ -65,7 +65,7 @@ class ControlHandler:
                 continue
 
             # 1. Recoger todos los sensores disponibles en este ciclo
-            self._collect_sensors()
+            #self._collect_sensors()
 
             # 2. Calcular con el snapshot completo y más reciente
             v, w = self._compute_control()
