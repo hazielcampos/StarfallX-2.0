@@ -1,6 +1,6 @@
 from queue import Queue
 from threading import Thread, Event
-from handlers import CommsHandler, ControlHandler, VisionHandler
+from src.handlers import CommsHandler, ControlHandler, VisionHandler
 from src.utils import SharedData
 from time import sleep
 
