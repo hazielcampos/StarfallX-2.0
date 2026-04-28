@@ -286,13 +286,12 @@ class CommsHandler:
             logger.warning("ID de sensor desconocido: 0x%02X (valor=%.3f)", sensor_id, value)
         else:
             logger.debug("Sensor %-14s = %8.3f", name, value)
-
-        if hasattr(self.shared.data, name):
-            setattr(self.shared.data, name, value)
+        if name in self.shared.data:
+                with self.shared.lock:
+                    self.shared.data[name] = value
         else:
             logger.warning("SharedData no tiene atributo '%s'", name)
 
-        self.rx_queue.put_nowait({"sensor": name, "value": value})
 
     # ── Handshake ─────────────────────────────────────────────────
 

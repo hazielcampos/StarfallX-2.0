@@ -10,6 +10,8 @@ class SharedData:
             "ball_x": 0,
             "goal_on_view": False,
             "goal_x": 0,
-            "ul_r": False,
-            "ul_l": False
+            "ultrasonic_1": 0.0,
+            "ultrasonic_2": 0.0,
+            "ir_1": 0.0,
+            "ir_2": 0.0
         }

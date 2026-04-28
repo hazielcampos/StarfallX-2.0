@@ -19,23 +19,12 @@ class ControlHandler:
         self.stop_event = stop_event
         self.running    = running
 
-        # Último valor conocido de cada sensor — se actualiza cada ciclo
-        self._sensors: dict[str, float] = {
-            "ultrasonic_1": -1.0,
-            "ultrasonic_2": -1.0,
-            "ir_1":          0.0,
-            "ir_2":          0.0,
-        }
-
     def _collect_sensors(self) -> int:
         count = 0
         while True:
             try:
                 msg: dict = self.rx_queue.get_nowait()
-                if "sensor" in msg and msg["sensor"] in self._sensors:
-                    self._sensors[msg["sensor"]] = msg["value"]
-                    count += 1
-                elif "button" in msg:
+                if "button" in msg:
                     self._handle_button(msg["button"], msg["pressed"])
                     count += 1
             except Empty:
@@ -51,10 +40,11 @@ class ControlHandler:
 
     # ── Lógica de control — trabaja con self._sensors completo ──────
     def _compute_control(self) -> tuple[float, float]:
-        d1  = self._sensors["ultrasonic_1"]
-        d2  = self._sensors["ultrasonic_2"]
-        ir1 = self._sensors["ir_1"]
-        ir2 = self._sensors["ir_2"]
+        with self.shared.lock:
+            d1 = self.shared.data["ultrasonic_1"]
+            d2 = self.shared.data["ultrasonic_2"]
+            ir1 = self.shared.data["ir_1"]
+            ir2 = self.shared.data["ir_2"]
 
         # Ejemplo: parar si hay obstáculo a menos de 15 cm
         """ if 0 < d1 < 15 or 0 < d2 < 15:
