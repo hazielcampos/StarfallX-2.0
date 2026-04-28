@@ -3,6 +3,13 @@ from threading import Thread, Event
 from src.handlers import CommsHandler, ControlHandler, VisionHandler
 from src.utils import SharedData
 from time import sleep
+import logging
+
+logging.basicConfig(
+    level=logging.DEBUG,          # DEBUG para ver todo, INFO para solo eventos importantes
+    format="%(asctime)s [%(levelname)-8s] %(name)s: %(message)s",
+    datefmt="%H:%M:%S",
+)
 
 stop_event = Event()
 running_event = Event()
