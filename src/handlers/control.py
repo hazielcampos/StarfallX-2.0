@@ -69,6 +69,7 @@ class ControlHandler:
 
             # 2. Calcular con el snapshot completo y más reciente
             v, w = self._compute_control()
+            print(v, w)
 
             # 3. Encolar comando hacia la ESP32
             self.tx_queue.put_nowait(Message.drive(v, w))
