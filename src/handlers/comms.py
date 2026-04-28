@@ -4,7 +4,7 @@ import logging
 from serial import Serial
 from queue import Queue, Empty
 from threading import Event
-from utils import SharedData
+from src.utils import SharedData
 from dataclasses import dataclass, field
 
 logger = logging.getLogger(__name__)

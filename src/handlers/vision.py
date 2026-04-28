@@ -1,4 +1,4 @@
-from utils import SharedData
+from src.utils import SharedData
 from time import sleep
 
 class VisionHandler:
