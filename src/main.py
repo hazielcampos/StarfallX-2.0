@@ -6,7 +6,7 @@ from time import sleep
 import logging
 
 logging.basicConfig(
-    level=logging.DEBUG,          # DEBUG para ver todo, INFO para solo eventos importantes
+    level=logging.INFO,          # DEBUG para ver todo, INFO para solo eventos importantes
     format="%(asctime)s [%(levelname)-8s] %(name)s: %(message)s",
     datefmt="%H:%M:%S",
 )
