@@ -60,9 +60,9 @@ class ControlHandler:
 
     def run(self):
         while not self.stop_event.is_set():
-            if not self.running.is_set():
-                sleep(0.1)
-                continue
+            #if not self.running.is_set():
+            #   sleep(0.1)
+            #   continue
 
             # 1. Recoger todos los sensores disponibles en este ciclo
             self._collect_sensors()
