@@ -5,6 +5,6 @@ class VisionHandler:
     def __init__(self, shared: SharedData):
         self.shared = shared
     
-    def run():
+    def run(self):
         while True:
             sleep(0.1)
