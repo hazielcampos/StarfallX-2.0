@@ -2,7 +2,7 @@ from queue import Queue, Empty
 from time import sleep
 from src.utils import SharedData
 from threading import Event
-from handlers.comms import Message, MsgType
+from .comms import Message, MsgType
 
 class ControlHandler:
     def __init__(
