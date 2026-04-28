@@ -46,6 +46,7 @@ class ControlHandler:
             ir1 = self.shared.data["ir_1"]
             ir2 = self.shared.data["ir_2"]
 
+        print(d1, d2, ir1, ir2)
         # Ejemplo: parar si hay obstáculo a menos de 15 cm
         """ if 0 < d1 < 15 or 0 < d2 < 15:
             return 0.0, 0.0
