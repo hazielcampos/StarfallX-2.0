@@ -11,7 +11,7 @@ shared = SharedData()
 rx_queue = Queue(maxsize=100)
 tx_queue = Queue(maxsize=100)
 
-comms = CommsHandler(shared, rx_queue, tx_queue, "/dev/serial10", 115500, stop_event)
+comms = CommsHandler(shared, rx_queue, tx_queue, "/dev/serial0", 115500, stop_event)
 vision = VisionHandler(shared)
 control = ControlHandler(shared, rx_queue, tx_queue, stop_event, running_event)
 
