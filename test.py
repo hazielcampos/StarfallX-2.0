@@ -3,7 +3,7 @@ import time
 
 # En la Pi 5 con disable-bt, el puerto suele ser /dev/ttyAMA0
 # Si no funciona, intenta con /dev/serial0
-puerto = '/dev/ttyAMA10'
+puerto = '/dev/serial'
 baudios = 115200
 
 try:
