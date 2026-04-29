@@ -4,6 +4,7 @@ from src.handlers import CommsHandler, ControlHandler, VisionHandler
 from src.utils import SharedData
 from time import sleep
 import logging
+from src.handlers.comms import Message
 
 logging.basicConfig(
     level=logging.INFO,          # DEBUG para ver todo, INFO para solo eventos importantes
@@ -32,6 +33,7 @@ try:
     
 except KeyboardInterrupt:
     print("Finishing program...")
+    tx_queue.put_nowait(Message.drive(0.0, 0.0))
 
 finally:
     running_event.clear()

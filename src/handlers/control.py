@@ -82,24 +82,6 @@ class ControlHandler:
             d2 = self.shared.data["ultrasonic_2"]
             ir1 = self.shared.data["ir_1"]
             ir2 = self.shared.data["ir_2"]
-        if self.running.is_set() and not self.started:
-            self.started = True
-            self.state = State.BALL_SEARCH
-            sleep(5);
-        
-        if self.state == State.BALL_SEARCH:
-            self._search_ball()
-        elif self.state == State.BALL_APROACH:
-            self._aproach_ball()
-
-        # Ejemplo: parar si hay obstáculo a menos de 15 cm
-        """ if 0 < d1 < 15 or 0 < d2 < 15:
-            return 0.0, 0.0
-
-        # Ejemplo: corrección lateral con IR
-        error = ir1 - ir2
-        v = 0.5
-        w = error * 0.001   # ganancia proporcional """
 
         return 0.5, 0
 
@@ -113,10 +95,19 @@ class ControlHandler:
             self._collect_sensors()
 
             # 2. Calcular con el snapshot completo y más reciente
-            v, w = self._compute_control()
-            print(v, w)
+            #v, w = self._compute_control()
 
             # 3. Encolar comando hacia la ESP32
-            self.tx_queue.put_nowait(Message.drive(v, w))
+            self.tx_queue.put_nowait(Message.drive(1.0, 0.0))
+            sleep(5)
+            self.tx_queue.put_nowait(Message.drive(0.5, 0.5))
+            sleep(5)
+
+            self.tx_queue.put_nowait(Message.drive(0.0, 1.0))
+            sleep(5)
+
+            self.tx_queue.put_nowait(Message.drive(0.0, -1.0))
+            sleep(5)
+
 
             sleep(0.05)   # frecuencia del loop de control ~20 Hz
