@@ -344,15 +344,15 @@ class CommsHandler:
 
             try:
                 msg: Message = self.tx_queue.get_nowait()
-                print(msg.msg_type)
-                print(msg.payload)
                 self._send_frame(msg.msg_type, msg.payload)
                 frames_tx += 1
             except Empty:
                 pass
 
             time.sleep(0.005)
-
+        final_msg: Message = Message.drive(0.0, 0.0)
+        self._send_frame(msg.msg_type, msg.payload)
+        self.serial.close()
         logger.info(
             "CommsHandler detenido — total RX=%d TX=%d tramas", frames_rx, frames_tx
         )
