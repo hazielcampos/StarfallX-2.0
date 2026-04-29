@@ -5,7 +5,7 @@ class SharedData:
         self.lock = Lock()
 
         self.data = {
-            "possession": False,
+            "line_limit": False,
             "ball_on_view": False,
             "ball_x": 0,
             "goal_on_view": False,

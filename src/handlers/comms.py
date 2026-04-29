@@ -39,7 +39,12 @@ class Message:
         # Añadimos el byte 0x01 al principio para que coincida con la ESP32
         payload = struct.pack("<Bff", 0x01, v, w) 
         return Message(msg_type=MsgType.CMD, payload=payload)
-
+    
+    @staticmethod
+    def launc() -> "Message":
+        payload = struct.pack("<B", 0x03)
+        return Message(msg_type=MsgType.CMD, payload=payload)
+    
     @staticmethod
     def ping() -> "Message":
         return Message(msg_type=MsgType.PING)

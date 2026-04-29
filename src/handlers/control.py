@@ -1,10 +1,22 @@
 from queue import Queue, Empty
-from time import sleep
+from time import sleep, time
 from src.utils import SharedData
 from threading import Event
 from .comms import Message, MsgType
+from enum import Enum
+import random
+
+class State(Enum):
+    IDLE = 0
+    BALL_SEARCH   = 1 # busqueda de balon
+    BALL_APROACH  = 2 
+    FRAME_SEARCH   = 3
+    FRAME_APROACH  = 4
+    SHOOT  = 5
+    AVOID_OBSTACLE = 6
 
 class ControlHandler:
+    state = State.IDLE
     def __init__(
         self,
         shared: SharedData,
@@ -18,6 +30,7 @@ class ControlHandler:
         self.shared     = shared
         self.stop_event = stop_event
         self.running    = running
+        self.started = False
 
     def _collect_sensors(self) -> int:
         count = 0
@@ -37,6 +50,30 @@ class ControlHandler:
         elif name == "btn_stop" and pressed:
             self.running.clear()
             self.tx_queue.put_nowait(Message.stop())
+    
+    def _send_speed(self, v: float, w: float):
+        self.tx_queue.put_nowait(Message.drive(v, w))
+
+
+    def _search_ball(self):
+        _internal_ball_on_view = False
+        with self.shared.lock:
+            _internal_ball_on_view = self.shared.data["ball_on_view"]
+        direction = random.choice([-1, 1])
+        start_time = time()
+        while not _internal_ball_on_view:
+            if time() - start_time  > 3:
+                direction = direction*-1
+                start_time = time()
+            self._send_speed(0.0, 0.5*direction)
+
+            with self.shared.lock:
+                _internal_ball_on_view = self.shared.data["ball_on_view"]
+        self._send_speed(0.0, 0.0)
+        self.state = State.BALL_APROACH
+
+    def _aproach_ball(self):
+        pass
 
     # ── Lógica de control — trabaja con self._sensors completo ──────
     def _compute_control(self) -> tuple[float, float]:
@@ -45,6 +82,15 @@ class ControlHandler:
             d2 = self.shared.data["ultrasonic_2"]
             ir1 = self.shared.data["ir_1"]
             ir2 = self.shared.data["ir_2"]
+        if self.running.is_set() and not self.started:
+            self.started = True
+            self.state = State.BALL_SEARCH
+            sleep(5);
+        
+        if self.state == State.BALL_SEARCH:
+            self._search_ball()
+        elif self.state == State.BALL_APROACH:
+            self._aproach_ball()
 
         # Ejemplo: parar si hay obstáculo a menos de 15 cm
         """ if 0 < d1 < 15 or 0 < d2 < 15:
