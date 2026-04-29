@@ -111,7 +111,8 @@ class ControlHandler:
 
             self.tx_queue.put_nowait(Message.drive(0.0, -1.0))
             sleep(5)
-
+            self.tx_queue.put_nowait(Message.drive(-1.0, 0.0))
+            sleep(5)
 
             sleep(0.05)   # frecuencia del loop de control ~20 Hz
         logger.info("Control module finished.")
