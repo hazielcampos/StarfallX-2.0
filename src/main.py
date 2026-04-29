@@ -34,8 +34,8 @@ try:
 except KeyboardInterrupt:
     print("Finishing program...")
     tx_queue.put_nowait(Message.drive(0.0, 0.0))
-
+    sleep(1)
 finally:
     running_event.clear()
     stop_event.set()
-    sleep(0.1)
+    sleep(1)

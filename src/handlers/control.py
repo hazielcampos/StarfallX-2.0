@@ -5,6 +5,9 @@ from threading import Event
 from .comms import Message, MsgType
 from enum import Enum
 import random
+import logging
+
+logger = logging.getLogger(__name__)
 
 class State(Enum):
     IDLE = 0
@@ -111,3 +114,4 @@ class ControlHandler:
 
 
             sleep(0.05)   # frecuencia del loop de control ~20 Hz
+        logger.info("Control module finished.")
