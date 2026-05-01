@@ -1,4 +1,4 @@
-from src.utils import SharedData
+from src.shared import SharedData
 from time import sleep
 from threading import Event
 import logging
