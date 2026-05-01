@@ -1,0 +1,44 @@
+robot:
+  name: "Starfall-X"
+  version: 1.0.0
+  comms:
+    port: "/dev/serial0"
+    baud: "115200"
+
+ball:
+  lab_mask:
+    lower:
+      L: 8
+      A: 92
+      B: 50
+    upper:
+      L: 255
+      A: 255
+      B: 129
+      
+  roi:
+    x1: 0
+    y1: 0
+    x2: 0
+    y2: 0
+
+goal:
+  target_color: "BLUE"
+  lab_mask_yellow:
+    lower:
+      L: 0
+      A: 0
+      B: 0
+    upper:
+      L: 0
+      A: 0
+      B: 0
+  lab_mask_blue:
+    lower:
+      L: 0
+      A: 0
+      B: 0
+    upper:
+      L: 0
+      A: 0
+      B: 0

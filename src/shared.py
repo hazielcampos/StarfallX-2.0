@@ -1,9 +1,21 @@
 from threading import Lock
+import yaml
+import os
+
+CONFIG_PATH = os.path.join(os.path.dirname(__file__), '..', 'config.yaml')
+
+def _load_config() -> dict:
+    path = os.path.abspath(CONFIG_PATH)
+    if os.path.exists(path):
+        with open(path, 'r') as f:
+            data = yaml.safe_load(f) or {}
+    return None
 
 class SharedData:
     def __init__(self):
         self.lock = Lock()
         self.frames = {}
+
         self.data = {
             "line_limit": False,
             "ball_on_view": False,
@@ -13,5 +25,5 @@ class SharedData:
             "ultrasonic_1": 0.0,
             "ultrasonic_2": 0.0,
             "ir_1": 0.0,
-            "ir_2": 0.0
+            "ir_2": 0.0,
         }

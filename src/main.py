@@ -23,16 +23,16 @@ shared = SharedData()
 rx_queue = Queue(maxsize=100)
 tx_queue = Queue(maxsize=100)
 
-#comms = CommsHandler(shared, rx_queue, tx_queue, "/dev/serial0", 115500, stop_event)
+comms = CommsHandler(shared, rx_queue, tx_queue, "/dev/serial0", 115500, stop_event)
 vision = VisionHandler(shared, stop_event)
 streams = StreamsHandler(shared, stop_event)
 
-#control = ControlHandler(shared, rx_queue, tx_queue, stop_event, running_event)
+control = ControlHandler(shared, rx_queue, tx_queue, stop_event, running_event)
 
-#comms_thread = Thread(target=comms.run, daemon=True).start()
+comms_thread = Thread(target=comms.run, daemon=True).start()
 vision_thread = Thread(target=vision.run, daemon=True).start()
 streams_thread = Thread(target=streams.run, daemon=True).start()
-#control_thread = Thread(target=control.run, daemon=True).start()
+control_thread = Thread(target=control.run, daemon=True).start()
 
 PIN_START = 17
 PIN_STOP = 27

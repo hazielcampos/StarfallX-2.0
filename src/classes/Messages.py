@@ -1,39 +1,41 @@
 import struct
+from dataclasses import dataclass, field
 
-START = 0xAA
-END = 0x55
+class MsgType:
+    CMD   = 0x01
+    DATA  = 0x02
+    ACK   = 0x03
+    NACK  = 0x04
+    PING  = 0x05
+    ERROR = 0xFF
 
-class MessageType:
-    ULTRASONIC = 1
-    SPEED = 2
-    IR = 3
+    _names = {0x01: "CMD", 0x02: "DATA", 0x03: "ACK",
+              0x04: "NACK", 0x05: "PING", 0xFF: "ERROR"}
 
+    @classmethod
+    def name(cls, val: int) -> str:
+        return cls._names.get(val, f"0x{val:02X}")
+
+@dataclass
 class Message:
+    msg_type: int
+    payload:  bytes = field(default=b"")
 
-    def __init__(self, emitter_id, type: MessageType, value):
-        self.emitter = emitter_id # <- if you have more than 1 ultrasonic or ir you are gonna need to identify witch one is sending the msg
-        self.type = type
-        self.value = value # <- message value can be any number, for floats required use 0 and 1 and it should let you use floats for sensor data.
+    @staticmethod
+    def drive(v: float, w: float) -> "Message":
+        # Añadimos el byte 0x01 al principio para que coincida con la ESP32
+        payload = struct.pack("<Bff", 0x01, v, w) 
+        return Message(msg_type=MsgType.CMD, payload=payload)
+    
+    @staticmethod
+    def launc() -> "Message":
+        payload = struct.pack("<B", 0x03)
+        return Message(msg_type=MsgType.CMD, payload=payload)
+    
+    @staticmethod
+    def ping() -> "Message":
+        return Message(msg_type=MsgType.PING)
 
-    def encode(self): # <- when you create a Message object and call this function it returns the Message encoded into binary (so you can send it to the MCU)
-        return struct.pack(
-            '>BBBfB',
-            START,
-            self.emitter,
-            self.type,
-            self.value,
-            END
-        )
-
-    def decode(data: bytes): # <- receive a binary message and decode it into a Message object to be processed.
-        try:
-            start, emitter, msg_type, value, end = struct.unpack('>BBBfB', data)
-            if start != START or end !=END:
-                raise ValueError("Invalid message format")
-            
-            return Message(
-                emitter, MessageType(msg_type), value
-            )
-        except Exception as e:
-            print("Decode error:", e)
-            return None
+    @staticmethod
+    def stop() -> "Message":
+        return Message(msg_type=MsgType.CMD, payload=struct.pack("ff", 0.0, 0.0))

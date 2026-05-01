@@ -1,8 +1,8 @@
 from queue import Queue, Empty
 from time import sleep, time
-from src.utils import SharedData
+from src.shared import SharedData
 from threading import Event
-from .comms import Message, MsgType
+from src.classes.Messages import *
 from enum import Enum
 import random
 import logging
@@ -34,6 +34,8 @@ class ControlHandler:
         self.stop_event = stop_event
         self.running    = running
         self.started = False
+        self._prev_error = 0
+        self._integral = 0
 
     def _collect_sensors(self) -> int:
         count = 0
@@ -46,6 +48,38 @@ class ControlHandler:
             except Empty:
                 break
         return count
+    def _pid(self, kp, kd, ki, error):
+        # Normalizar error (-100 a 100) -> (-1 a 1)
+        e = error / 100.0
+
+        # Derivada
+        derivative = e - self._prev_error
+
+        # Integral (con anti-windup básico)
+        self._integral += e
+        self._integral = max(min(self._integral, 1), -1)
+
+        # PID
+        w = kp * e + kd * derivative + ki * self._integral
+
+        # Saturar salida angular
+        w = max(min(w, 1), -1)
+
+        # Velocidad lineal:
+        # entre más error, menos avance (para no irte de largo)
+        v = 1.0 - abs(e)
+
+        # Permitir reversa si el error es muy grande (opcional)
+        if abs(e) > 0.9:
+            v = -0.3
+
+        # Saturar
+        v = max(min(v, 1), -1)
+
+        # Guardar estado
+        self._prev_error = e
+
+        return v, w
 
     def _handle_button(self, name: str, pressed: bool):
         if name == "btn_start" and pressed:
@@ -76,7 +110,10 @@ class ControlHandler:
         self.state = State.BALL_APROACH
 
     def _aproach_ball(self):
-        pass
+        with self.shared.lock:
+            error = self.shared.data["ball_x"]
+        return self._pid(1, 0.05, 0.001, error)
+        
 
     # ── Lógica de control — trabaja con self._sensors completo ──────
     def _compute_control(self) -> tuple[float, float]:
@@ -85,8 +122,12 @@ class ControlHandler:
             d2 = self.shared.data["ultrasonic_2"]
             ir1 = self.shared.data["ir_1"]
             ir2 = self.shared.data["ir_2"]
-
-        return 0.5, 0
+        with self.shared.lock:
+            _internal_ball_on_view = self.shared.data["ball_on_view"]
+        print(_internal_ball_on_view)
+        if _internal_ball_on_view:
+            return self._aproach_ball()
+        return 0, 0
 
     def run(self):
         while not self.stop_event.is_set():
@@ -102,6 +143,8 @@ class ControlHandler:
 
             # 3. Encolar comando hacia la ESP32
             self.tx_queue.put_nowait(Message.drive(v, w))
+
+            print(v, w)
 
             sleep(0.05)   # frecuencia del loop de control ~20 Hz
         logger.info("Control module finished.")
