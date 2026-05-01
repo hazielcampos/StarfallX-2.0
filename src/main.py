@@ -1,10 +1,14 @@
 from queue import Queue
 from threading import Thread, Event
-from src.handlers import CommsHandler, ControlHandler, VisionHandler
+from src.handlers import CommsHandler, ControlHandler, VisionHandler, StreamsHandler
 from src.utils import SharedData
 from time import sleep
 import logging
 from src.handlers.comms import Message
+import os
+import lgpio
+
+h = lgpio.gpiochip_open(0)
 
 logging.basicConfig(
     level=logging.INFO,          # DEBUG para ver todo, INFO para solo eventos importantes
@@ -19,22 +23,37 @@ shared = SharedData()
 rx_queue = Queue(maxsize=100)
 tx_queue = Queue(maxsize=100)
 
-comms = CommsHandler(shared, rx_queue, tx_queue, "/dev/serial0", 115500, stop_event)
+#comms = CommsHandler(shared, rx_queue, tx_queue, "/dev/serial0", 115500, stop_event)
 vision = VisionHandler(shared, stop_event)
-control = ControlHandler(shared, rx_queue, tx_queue, stop_event, running_event)
+streams = StreamsHandler(shared, stop_event)
 
-comms_thread = Thread(target=comms.run).start()
-vision_thread = Thread(target=vision.run).start()
-control_thread = Thread(target=control.run).start()
+#control = ControlHandler(shared, rx_queue, tx_queue, stop_event, running_event)
+
+#comms_thread = Thread(target=comms.run, daemon=True).start()
+vision_thread = Thread(target=vision.run, daemon=True).start()
+streams_thread = Thread(target=streams.run, daemon=True).start()
+#control_thread = Thread(target=control.run, daemon=True).start()
+
+PIN_START = 17
+PIN_STOP = 27
+
+# Configurar pines como entrada con pull-up
+lgpio.gpio_claim_input(h, PIN_START, lgpio.SET_PULL_UP)
+lgpio.gpio_claim_input(h, PIN_STOP, lgpio.SET_PULL_UP)
 
 try:
     while True:
-        sleep(0.1)
+        start_state = lgpio.gpio_read(h, PIN_START)
+        stop_state = lgpio.gpio_read(h, PIN_STOP)
+
+        if start_state == 0 and not running_event.is_set():
+            running_event.set()
+        elif stop_state == 0 and running_event.is_set():
+            running_event.clear()
+        sleep(0.05)
     
 except KeyboardInterrupt:
     print("Finishing program...")
-    sleep(1)
 finally:
     running_event.clear()
     stop_event.set()
-    sleep(1)

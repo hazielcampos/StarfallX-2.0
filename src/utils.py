@@ -3,7 +3,7 @@ from threading import Lock
 class SharedData:
     def __init__(self):
         self.lock = Lock()
-
+        self.frames = {}
         self.data = {
             "line_limit": False,
             "ball_on_view": False,
