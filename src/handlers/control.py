@@ -11,10 +11,10 @@ logger = logging.getLogger(__name__)
 
 class State(Enum):
     IDLE = 0
-    BALL_SEARCH   = 1 # busqueda de balon
-    BALL_APROACH  = 2 
+    BALL_SEARCH   = 1
+    BALL_APPROACH  = 2 
     FRAME_SEARCH   = 3
-    FRAME_APROACH  = 4
+    FRAME_APPROACH  = 4
     SHOOT  = 5
     AVOID_OBSTACLE = 6
 
@@ -102,14 +102,14 @@ class ControlHandler:
             if time() - start_time  > 3:
                 direction = direction*-1
                 start_time = time()
-            self._send_speed(0.0, 0.5*direction)
+            self._send_speed(0.0, direction)
 
             with self.shared.lock:
                 _internal_ball_on_view = self.shared.data["ball_on_view"]
         self._send_speed(0.0, 0.0)
-        self.state = State.BALL_APROACH
+        self.state = State.BALL_APPROACH
 
-    def _aproach_ball(self):
+    def _approach_ball(self):
         with self.shared.lock:
             error = self.shared.data["ball_x"]
         return self._pid(1, 0.05, 0.001, error)
@@ -126,7 +126,7 @@ class ControlHandler:
             _internal_ball_on_view = self.shared.data["ball_on_view"]
         print(_internal_ball_on_view)
         if _internal_ball_on_view:
-            return self._aproach_ball()
+            return self._approach_ball()
         return 0, 0
 
     def run(self):
