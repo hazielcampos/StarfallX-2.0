@@ -130,9 +130,8 @@ class ControlHandler:
             v, w = self._compute_control()
 
             # 3. Encolar comando hacia la ESP32
-            self.tx_queue.put_nowait(Message.drive(v, w))
+            self.tx_queue.put_nowait(Message.drive(-1, 0))
 
-            print(-1, 0)
 
             sleep(0.05)   # frecuencia del loop de control ~20 Hz
         logger.info("Control module finished.")
