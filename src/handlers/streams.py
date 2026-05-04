@@ -69,11 +69,11 @@ class StreamsHandler:
                 magic = unpacked[0]
                 if magic != CMD_MAGIC:
                     continue
-                vals = list(unpacked[1:])   # [lL, lA, lB, uL, uA, uB]
-                lower = vals[:3]
-                upper = vals[3:]
-                self.shared.set_lab_bounds(lower, upper)
-                logger.debug(f"LAB actualizado: lower={lower} upper={upper}")
+                #vals = list(unpacked[1:])   # [lL, lA, lB, uL, uA, uB]
+                #lower = vals[:3]
+                #upper = vals[3:]
+                #self.shared.set_lab_bounds(lower, upper)
+                #logger.debug(f"LAB actualizado: lower={lower} upper={upper}")
             except socket.timeout:
                 continue
             except Exception as e:

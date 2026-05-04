@@ -80,13 +80,6 @@ class ControlHandler:
         self._prev_error = e
 
         return v, w
-
-    def _handle_button(self, name: str, pressed: bool):
-        if name == "btn_start" and pressed:
-            self.running.set()
-        elif name == "btn_stop" and pressed:
-            self.running.clear()
-            self.tx_queue.put_nowait(Message.stop())
     
     def _send_speed(self, v: float, w: float):
         self.tx_queue.put_nowait(Message.drive(v, w))
@@ -118,11 +111,6 @@ class ControlHandler:
     # ── Lógica de control — trabaja con self._sensors completo ──────
     def _compute_control(self) -> tuple[float, float]:
         with self.shared.lock:
-            d1 = self.shared.data["ultrasonic_1"]
-            d2 = self.shared.data["ultrasonic_2"]
-            ir1 = self.shared.data["ir_1"]
-            ir2 = self.shared.data["ir_2"]
-        with self.shared.lock:
             _internal_ball_on_view = self.shared.data["ball_on_view"]
         print(_internal_ball_on_view)
         if _internal_ball_on_view:
@@ -144,7 +132,7 @@ class ControlHandler:
             # 3. Encolar comando hacia la ESP32
             self.tx_queue.put_nowait(Message.drive(v, w))
 
-            print(v, w)
+            print(-1, 0)
 
             sleep(0.05)   # frecuencia del loop de control ~20 Hz
         logger.info("Control module finished.")

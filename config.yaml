@@ -3,7 +3,7 @@ robot:
   version: 1.0.0
   comms:
     port: "/dev/serial0"
-    baud: "115200"
+    baud: 115200
 
 ball:
   lab_mask:
@@ -19,8 +19,8 @@ ball:
   roi:
     x1: 0
     y1: 0
-    x2: 0
-    y2: 0
+    x2: 960
+    y2: 300
 
 goal:
   target_color: "BLUE"
@@ -42,3 +42,8 @@ goal:
       L: 0
       A: 0
       B: 0
+  roi:
+    x1: 0
+    y1: 0
+    x2: 960
+    y2: 300

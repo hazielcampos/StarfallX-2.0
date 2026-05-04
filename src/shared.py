@@ -1,16 +1,4 @@
 from threading import Lock
-import yaml
-import os
-
-CONFIG_PATH = os.path.join(os.path.dirname(__file__), '..', 'config.yaml')
-
-def _load_config() -> dict:
-    path = os.path.abspath(CONFIG_PATH)
-    if os.path.exists(path):
-        with open(path, 'r') as f:
-            data = yaml.safe_load(f) or {}
-    return None
-
 class SharedData:
     def __init__(self):
         self.lock = Lock()

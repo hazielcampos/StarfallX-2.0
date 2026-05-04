@@ -7,6 +7,7 @@ import logging
 from src.handlers.comms import Message
 import os
 import lgpio
+from src.config import ConfigManager
 
 h = lgpio.gpiochip_open(0)
 
@@ -15,17 +16,19 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)-8s] %(name)s: %(message)s",
     datefmt="%H:%M:%S",
 )
+CONFIG_PATH = os.path.join(os.path.dirname(__file__), '..', 'config.yaml')
 
 stop_event = Event()
 running_event = Event()
 
 shared = SharedData()
+config_manager = ConfigManager(CONFIG_PATH)
 rx_queue = Queue(maxsize=100)
 tx_queue = Queue(maxsize=100)
 
 comms = CommsHandler(shared, rx_queue, tx_queue, "/dev/serial0", 115500, stop_event)
-vision = VisionHandler(shared, stop_event)
-streams = StreamsHandler(shared, stop_event)
+vision = VisionHandler(shared, config_manager, stop_event)
+streams = StreamsHandler(shared, config_manager, stop_event)
 
 control = ControlHandler(shared, rx_queue, tx_queue, stop_event, running_event)
 
