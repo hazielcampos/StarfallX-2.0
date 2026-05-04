@@ -33,6 +33,11 @@ class Message:
         return Message(msg_type=MsgType.CMD, payload=payload)
     
     @staticmethod
+    def servo(angle) -> "Message":
+        payload = struct.pack("<BB", 0x03, angle)
+        return Message(msg_type=MsgType.CMD, payload=payload)
+
+    @staticmethod
     def ping() -> "Message":
         return Message(msg_type=MsgType.PING)
 

@@ -85,9 +85,9 @@ class VisionHandler:
             else:
                 with self.shared.lock:
                     self.shared.data["goal_on_view"] = False
-            with self.shared.lock:
-                self.shared.frames[0x06] = mask_show
-                self.shared.frames[0x05] = mask
+        with self.shared.lock:
+            self.shared.frames[0x06] = mask_show
+            self.shared.frames[0x05] = mask
 
     def _get_ball(self, roi, lower, upper):
         mask_ball = cv2.inRange(roi, lower, upper)
@@ -143,9 +143,9 @@ class VisionHandler:
             else:
                 with self.shared.lock:
                     self.shared.data["ball_on_view"] = False
-            with self.shared.lock:
-                self.shared.frames[0x04] = mask_ball_show
-                self.shared.frames[0x03] = mask_ball
+        with self.shared.lock:
+            self.shared.frames[0x04] = mask_ball_show
+            self.shared.frames[0x03] = mask_ball
     
     def run(self):
         if self.camera:

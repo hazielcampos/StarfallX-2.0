@@ -4,8 +4,9 @@ import cv2
 import threading
 import logging
 from time import sleep
+from src.config.loader import ConfigManager
 from src.shared import SharedData
-
+from src.config import ConfigManager
 logger = logging.getLogger(__name__)
 
 # Protocolo de frames: [1 byte stream_id][jpeg data]
@@ -25,8 +26,9 @@ CMD_PORT    = 9998        # recepción de comandos LAB
 
 
 class StreamsHandler:
-    def __init__(self, shared: SharedData, stop_event, dest_ip="10.12.3.10"):
+    def __init__(self, shared: SharedData, config_manager: ConfigManager,  stop_event, dest_ip="10.12.3.10"):
         self.shared = shared
+        self.config_manager = config_manager
         self.stop_event = stop_event
         self.dest_ip = dest_ip
 

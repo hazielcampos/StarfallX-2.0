@@ -16,6 +16,8 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)-8s] %(name)s: %(message)s",
     datefmt="%H:%M:%S",
 )
+
+logger = logging.getLogger(__name__)
 CONFIG_PATH = os.path.join(os.path.dirname(__file__), '..', 'config.yaml')
 
 stop_event = Event()
@@ -50,9 +52,11 @@ try:
         stop_state = lgpio.gpio_read(h, PIN_STOP)
 
         if start_state == 0 and not running_event.is_set():
+            logger.info("Robot started")
             running_event.set()
         elif stop_state == 0 and running_event.is_set():
             running_event.clear()
+            logger.info("Robot stoped")
         sleep(0.05)
     
 except KeyboardInterrupt:
