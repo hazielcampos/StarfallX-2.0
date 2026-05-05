@@ -8,40 +8,40 @@ robot:
 ball:
   lab_mask:
     lower:
-      L: 90
-      A: 92
-      B: 50
+      L: 20
+      A: 100
+      B: 60
     upper:
-      L: 180
-      A: 145
-      B: 119 
+      L: 195
+      A: 150
+      B: 105 
       
   roi:
     x1: 0
     y1: 0
     x2: 960
-    y2: 300
+    y2: 540
 
 
 goal:
-  target_color: "BLUE"
+  target_color: "YELLOW"
   lab_mask_yellow:
     lower:
-      L: 140
-      A: 90
-      B: 115
+      L: 80
+      A: 30
+      B: 95
     upper:
       L: 255
-      A: 105
+      A: 100
       B: 140
   lab_mask_blue:
     lower:
-      L: 150
+      L: 100
       A: 120
-      B: 200
+      B: 155
     upper:
       L: 240
-      A: 205
+      A: 225
       B: 220
   roi:
     x1: 0
@@ -52,15 +52,15 @@ goal:
 line:
   lab_mask:
     lower:
-      L: 160
+      L: 190
       A: 120
-      B: 140
+      B: 100
     upper:
       L: 255
       A: 255
       B: 255
   roi:
     x1: 0
-    y1: 400
+    y1: 370
     x2: 960
     y2: 500

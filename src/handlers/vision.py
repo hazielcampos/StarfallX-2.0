@@ -49,7 +49,8 @@ class VisionHandler:
             largest_contour = max(contours, key=cv2.contourArea)
 
             # Filtrar ruido (opcional pero recomendado)
-            if cv2.contourArea(largest_contour) > 500:  
+            contour = cv2.contourArea(largest_contour)
+            if contour > 1000:  
                 with self.shared.lock:
                     self.shared.data["line_limit"] = True
 
@@ -86,10 +87,12 @@ class VisionHandler:
         if contours:
             # Contorno más grande
             largest_contour = max(contours, key=cv2.contourArea)
+            
 
             # Filtrar ruido (opcional pero recomendado)
-            if cv2.contourArea(largest_contour) > 500:  
+            if cv2.contourArea(largest_contour) > 500: 
                 with self.shared.lock:
+                    self.shared.data["goal_size"] = cv2.contourArea(largest_contour) 
                     self.shared.data["goal_on_view"] = True
 
                 # Calcular centro usando momentos
@@ -124,9 +127,11 @@ class VisionHandler:
             else:
                 with self.shared.lock:
                     self.shared.data["goal_on_view"] = False
-        #with self.shared.lock:
-            #self.shared.frames[0x06] = mask_show
-            #self.shared.frames[0x05] = mask
+                    self.shared.data["goal_size"] = 0
+
+        with self.shared.lock:
+            self.shared.frames[0x08] = mask_show
+            self.shared.frames[0x07] = mask
 
     def _get_ball(self, roi, lower, upper):
         mask_ball = cv2.inRange(roi, lower, upper)
@@ -149,6 +154,7 @@ class VisionHandler:
             if cv2.contourArea(largest_contour) > 500:  
                 with self.shared.lock:
                     self.shared.data["ball_on_view"] = True
+                    self.shared.data["ball_size"] = cv2.contourArea(largest_contour)
 
                 # Calcular centro usando momentos
                 M = cv2.moments(largest_contour)
@@ -158,6 +164,7 @@ class VisionHandler:
 
                     # Dibujar punto
                     cv2.circle(mask_ball_show, (cx, cy), 6, (0, 255, 0), -1)
+                    cv2.line(mask_ball_show, (0, 270), (960, 270), (0, 255, 0))
 
                     # Dibujar label
                     cv2.putText(mask_ball_show, f"({cx},{cy})", (cx+10, cy-10),
@@ -176,6 +183,7 @@ class VisionHandler:
                     error_x = error_x * -1
                     with self.shared.lock:
                         self.shared.data["ball_x"] = error_x
+                        self.shared.data["ball_y"] = cy
 
                     cv2.putText(mask_ball_show, f"Error: {error_x}", (20, 40),
                         cv2.FONT_HERSHEY_SIMPLEX, 2, (0,255,255), 2)
@@ -192,7 +200,7 @@ class VisionHandler:
                 "AeEnable": False,
                 "AwbEnable": False,
                 "ExposureTime": 10000,
-                "AnalogueGain": 25.0,
+                "AnalogueGain": 5.0,
                 "ColourGains": (2, 2)
             })
             self.camera.start()

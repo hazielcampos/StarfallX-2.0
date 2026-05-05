@@ -8,6 +8,7 @@ from src.handlers.comms import Message
 import os
 import lgpio
 from src.config import ConfigManager
+from src.utils import cli_interface
 
 h = lgpio.gpiochip_open(0)
 
@@ -25,8 +26,8 @@ running_event = Event()
 
 shared = SharedData()
 config_manager = ConfigManager(CONFIG_PATH)
-rx_queue = Queue(maxsize=100)
-tx_queue = Queue(maxsize=100)
+rx_queue = Queue(maxsize=300)
+tx_queue = Queue(maxsize=300)
 
 comms = CommsHandler(shared, rx_queue, tx_queue, "/dev/serial0", 115500, stop_event)
 vision = VisionHandler(shared, config_manager, stop_event)
@@ -38,6 +39,9 @@ comms_thread = Thread(target=comms.run, daemon=True).start()
 vision_thread = Thread(target=vision.run, daemon=True).start()
 streams_thread = Thread(target=streams.run, daemon=True).start()
 control_thread = Thread(target=control.run, daemon=True).start()
+
+cli_thread = Thread(target=cli_interface, args=(tx_queue, running_event, stop_event), daemon=True)
+cli_thread.start()
 
 PIN_START = 17
 PIN_STOP = 27

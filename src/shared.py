@@ -14,4 +14,6 @@ class SharedData:
             "ultrasonic_2": 0.0,
             "ir_1": 0.0,
             "ir_2": 0.0,
+            "ball_size": 0,
+            "ball_y": 0
         }
