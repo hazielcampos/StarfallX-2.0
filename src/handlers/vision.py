@@ -32,6 +32,45 @@ class VisionHandler:
             self.camera = None
             logger.warning("Picamera2 no disponible — usando cámara USB/webcam.")
             self._cap = cv2.VideoCapture(0)
+    def _get_line(self, roi, lower, upper):
+        mask = cv2.inRange(roi, lower, upper)
+
+        kernel = np.ones((5, 5), np.uint8)
+        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+        mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+        mask = cv2.dilate(mask, kernel, iterations=2)
+        
+        mask_show = cv2.cvtColor(roi, cv2.COLOR_LAB2RGB)
+
+        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        if contours:
+            # Contorno más grande
+            largest_contour = max(contours, key=cv2.contourArea)
+
+            # Filtrar ruido (opcional pero recomendado)
+            if cv2.contourArea(largest_contour) > 500:  
+                with self.shared.lock:
+                    self.shared.data["line_limit"] = True
+
+                # Calcular centro usando momentos
+                M = cv2.moments(largest_contour)
+                if M["m00"] != 0:
+                    cx = int(M["m10"] / M["m00"])
+                    cy = int(M["m01"] / M["m00"])
+
+                    # Dibujar punto
+                    cv2.circle(mask_show, (cx, cy), 6, (0, 255, 0), -1)
+
+                    # Dibujar contorno (opcional)
+                    cv2.drawContours(mask_show, [largest_contour], -1, (0,255,0), 2)
+            else:
+                with self.shared.lock:
+                    self.shared.data["line_limit"] = False
+        with self.shared.lock:
+            self.shared.frames[0x06] = mask_show
+            self.shared.frames[0x05] = mask
+    
     def _get_goal(self, roi, lower, upper):
         mask = cv2.inRange(roi, lower, upper)
 
@@ -85,9 +124,9 @@ class VisionHandler:
             else:
                 with self.shared.lock:
                     self.shared.data["goal_on_view"] = False
-        with self.shared.lock:
-            self.shared.frames[0x06] = mask_show
-            self.shared.frames[0x05] = mask
+        #with self.shared.lock:
+            #self.shared.frames[0x06] = mask_show
+            #self.shared.frames[0x05] = mask
 
     def _get_ball(self, roi, lower, upper):
         mask_ball = cv2.inRange(roi, lower, upper)
@@ -199,6 +238,16 @@ class VisionHandler:
                 goal_upper_arr = np.array([goal_upper_obj.L, goal_upper_obj.A, goal_upper_obj.B], dtype=np.uint8)
                 roi_goal = roi_ball = lab[config.goal.roi.y1:config.goal.roi.y2, config.goal.roi.x1:config.goal.roi.x2]
                 self._get_goal(roi_goal, goal_lower_arr, goal_upper_arr)
+
+                line_lab_mask = config.line.lab_mask
+                line_lower_obj = line_lab_mask.lower
+                line_upper_obj = line_lab_mask.upper
+
+                line_lower_arr = np.array([line_lower_obj.L, line_lower_obj.A, line_lower_obj.B], dtype=np.uint8)
+                line_upper_arr = np.array([line_upper_obj.L, line_upper_obj.A, line_upper_obj.B], dtype=np.uint8)
+                roi_line = roi_ball = lab[config.line.roi.y1:config.line.roi.y2, config.line.roi.x1:config.line.roi.x2]
+
+                self._get_line(roi_line, line_lower_arr, line_upper_arr)
 
                 with self.shared.lock:
                     self.shared.frames[0x01] = frame_blur

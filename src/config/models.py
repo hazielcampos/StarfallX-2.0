@@ -34,8 +34,12 @@ class Goal(BaseModel):
     lab_mask_yellow: Mask
     lab_mask_blue: Mask
     roi: ROI
+class Line(BaseModel):
+    lab_mask: Mask
+    roi: ROI
 
 class Config(BaseModel):
     robot: Robot
     ball: Ball
     goal: Goal
+    line: Line
