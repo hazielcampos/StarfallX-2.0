@@ -1,11 +1,10 @@
-from src.shared import SharedData
+from src.shared import SharedData, Data
 from time import sleep
 from threading import Event
 import logging
 import numpy as np
 import cv2
 from src.config import ConfigManager
-from src.shared import Data
 # Importación condicional para que funcione sin Raspberry Pi
 try:
     from picamera2 import Picamera2
@@ -41,7 +40,7 @@ class VisionHandler:
         mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
         mask = cv2.dilate(mask, kernel, iterations=2)
         
-        mask_show = cv2.cvtColor(roi, cv2.COLOR_LAB2RGB)
+        mask_show = mask.copy()
 
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
@@ -52,8 +51,7 @@ class VisionHandler:
             # Filtrar ruido (opcional pero recomendado)
             contour = cv2.contourArea(largest_contour)
             if contour > 1000:  
-                with self.shared.lock:
-                    self.shared.data["line_limit"] = True
+                self.shared.update(Data.LINE_LIMIT, True)
 
                 # Calcular centro usando momentos
                 M = cv2.moments(largest_contour)
@@ -67,12 +65,9 @@ class VisionHandler:
                     # Dibujar contorno (opcional)
                     cv2.drawContours(mask_show, [largest_contour], -1, (0,255,0), 2)
             else:
-                with self.shared.lock:
-                    self.shared.data["line_limit"] = False
-        with self.shared.lock:
-            self.shared.frames[0x06] = mask_show
-            self.shared.frames[0x05] = mask
-    
+                self.shared.update(Data.LINE_LIMIT, False)
+        self.shared.update_frame(0x03, mask_show)
+
     def _get_goal(self, roi, lower, upper):
         mask = cv2.inRange(roi, lower, upper)
 
@@ -81,7 +76,7 @@ class VisionHandler:
         mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
         mask = cv2.dilate(mask, kernel, iterations=2)
         
-        mask_show = cv2.cvtColor(roi, cv2.COLOR_LAB2RGB)
+        mask_show = mask.copy()
 
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
@@ -92,9 +87,8 @@ class VisionHandler:
 
             # Filtrar ruido (opcional pero recomendado)
             if cv2.contourArea(largest_contour) > 500: 
-                with self.shared.lock:
-                    self.shared.data["goal_size"] = cv2.contourArea(largest_contour) 
-                    self.shared.data["goal_on_view"] = True
+                self.shared.update(Data.GOAL_SIZE, cv2.contourArea(largest_contour))
+                self.shared.update(Data.GOAL_ON_VIEW, True)
 
                 # Calcular centro usando momentos
                 M = cv2.moments(largest_contour)
@@ -120,19 +114,56 @@ class VisionHandler:
                     error_x = max(-100, min(100, error_x))
                     error_x = int(error_x)
                     error_x = error_x * -1
-                    with self.shared.lock:
-                        self.shared.data["goal_x"] = error_x
+                    self.shared.update(Data.GOAL_X, error_x)
 
                     cv2.putText(mask_show, f"Error: {error_x}", (20, 40),
                         cv2.FONT_HERSHEY_SIMPLEX, 2, (0,255,255), 2)
             else:
-                with self.shared.lock:
-                    self.shared.data["goal_on_view"] = False
-                    self.shared.data["goal_size"] = 0
+                self.shared.update(Data.GOAL_ON_VIEW, False)
+                self.shared.update(Data.GOAL_SIZE, 0)
 
-        with self.shared.lock:
-            self.shared.frames[0x08] = mask_show
-            self.shared.frames[0x07] = mask
+        self.shared.update_frame(0x02, mask_show)
+
+    def _get_ball_bottom(self, roi, lower, upper):
+        mask_ball = cv2.inRange(roi, lower, upper)
+
+        kernel = np.ones((5, 5), np.uint8)
+        mask_ball = cv2.morphologyEx(mask_ball, cv2.MORPH_OPEN, kernel)
+        mask_ball = cv2.morphologyEx(mask_ball, cv2.MORPH_CLOSE, kernel)
+        mask_ball = cv2.dilate(mask_ball, kernel, iterations=2)
+        
+        mask_ball_show = mask_ball.copy()
+        mask_ball_show = cv2.line(mask_ball_show, (480, 0), (480, 540), (255, 0, 0), 2)
+
+        contours, _ = cv2.findContours(mask_ball, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        if contours:
+            # Contorno más grande
+            largest_contour = max(contours, key=cv2.contourArea)
+
+            # Filtrar ruido (opcional pero recomendado)
+            if cv2.contourArea(largest_contour) > 500:  
+                self.shared.update(Data.BALL_ON_BOTTOM, True)
+
+                # Calcular centro usando momentos
+                M = cv2.moments(largest_contour)
+                if M["m00"] != 0:
+                    cx = int(M["m10"] / M["m00"])
+                    cy = int(M["m01"] / M["m00"])
+
+                    # Dibujar punto
+                    cv2.circle(mask_ball_show, (cx, cy), 6, (0, 255, 0), -1)
+                    cv2.line(mask_ball_show, (0, 270), (960, 270), (0, 255, 0))
+
+                    # Dibujar label
+                    cv2.putText(mask_ball_show, f"({cx},{cy})", (cx+10, cy-10),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,255,0), 2)
+
+                    # Dibujar contorno (opcional)
+                    cv2.drawContours(mask_ball_show, [largest_contour], -1, (0,255,0), 2)
+            else:
+                self.shared.update(Data.BALL_ON_BOTTOM, False)
+        self.shared.update_frame(0x04, mask_ball_show)
 
     def _get_ball(self, roi, lower, upper):
         mask_ball = cv2.inRange(roi, lower, upper)
@@ -153,9 +184,8 @@ class VisionHandler:
 
             # Filtrar ruido (opcional pero recomendado)
             if cv2.contourArea(largest_contour) > 500:  
-                with self.shared.lock:
-                    self.shared.data["ball_on_view"] = True
-                    self.shared.data["ball_size"] = cv2.contourArea(largest_contour)
+                self.shared.update(Data.BALL_ON_VIEW, True)
+                self.shared.update(Data.BALL_SIZE, cv2.contourArea(largest_contour))
 
                 # Calcular centro usando momentos
                 M = cv2.moments(largest_contour)
@@ -182,19 +212,15 @@ class VisionHandler:
                     error_x = max(-100, min(100, error_x))
                     error_x = int(error_x)
                     error_x = error_x * -1
-                    with self.shared.lock:
-                        self.shared.data["ball_x"] = error_x
-                        self.shared.data["ball_y"] = cy
+                    self.shared.update(Data.BALL_X, error_x)
+                    self.shared.update(Data.BALL_Y, cy)
 
                     cv2.putText(mask_ball_show, f"Error: {error_x}", (20, 40),
                         cv2.FONT_HERSHEY_SIMPLEX, 2, (0,255,255), 2)
             else:
-                with self.shared.lock:
-                    self.shared.data["ball_on_view"] = False
-        with self.shared.lock:
-            self.shared.frames[0x02] = mask_ball_show
-            #self.shared.frames[0x03] = mask_ball
-    
+                self.shared.update(Data.BALL_ON_VIEW, False)
+        self.shared.update_frame(0x01, mask_ball_show)
+
     def run(self):
         if self.camera:
             self.camera.set_controls({
@@ -228,11 +254,14 @@ class VisionHandler:
                 ball_upper_obj = ball.lab_mask.upper
 
                 roi_ball = lab[ball.roi.y1:ball.roi.y2, ball.roi.x1:ball.roi.x2]
+                rbb = ball.roi_on_bottom
+                roi_ball_bottom = lab[rbb.y1:rbb.y2, rbb.x1:rbb.x2]
 
                 ball_lower_arr = np.array([ball_lower_obj.L, ball_lower_obj.A, ball_lower_obj.B], dtype=np.uint8)
                 ball_upper_arr = np.array([ball_upper_obj.L, ball_upper_obj.A, ball_upper_obj.B], dtype=np.uint8)
 
                 self._get_ball(roi_ball, ball_lower_arr, ball_upper_arr)
+                self._get_ball_bottom(roi_ball_bottom, ball_lower_arr, ball_upper_arr)
 
                 goal_color = config.goal.target_color
                 if goal_color == "BLUE":
@@ -258,8 +287,7 @@ class VisionHandler:
 
                 self._get_line(roi_line, line_lower_arr, line_upper_arr)
 
-                with self.shared.lock:
-                    self.shared.frames[0x01] = frame_blur
+                self.shared.update_frame(0x00, frame)
                     #self.shared.frames[0x02] = lab
                 sleep(1 / 30)
 

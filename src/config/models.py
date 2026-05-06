@@ -28,6 +28,7 @@ class Robot(BaseModel):
 class Ball(BaseModel):
     lab_mask: Mask
     roi: ROI
+    roi_on_bottom: ROI
 
 class Goal(BaseModel):
     target_color: Literal["BLUE", "YELLOW"]

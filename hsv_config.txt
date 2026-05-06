@@ -1,6 +1,0 @@
-h_min=82
-h_max=115
-s_min=150
-s_max=255
-b_min=57
-b_max=255

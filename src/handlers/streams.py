@@ -5,7 +5,7 @@ import threading
 import logging
 from time import sleep
 from src.config.loader import ConfigManager
-from src.shared import SharedData
+from src.shared import SharedData, Data
 from src.config import ConfigManager
 logger = logging.getLogger(__name__)
 
@@ -92,8 +92,7 @@ class StreamsHandler:
 
         logger.info(f"Streaming → {self.dest_ip}:{STREAM_PORT}")
         while not self.stop_event.is_set():
-            with self.shared.lock:
-                frames = dict(self.shared.frames)
+            frames = {stream_id: self.shared.get_frame(stream_id) for stream_id in self.shared.frames}
 
             for stream_id, frame in frames.items():
                 self._send_frame(stream_id, frame)
