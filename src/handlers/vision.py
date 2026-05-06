@@ -5,6 +5,7 @@ import logging
 import numpy as np
 import cv2
 from src.config import ConfigManager
+from src.shared import Data
 # Importación condicional para que funcione sin Raspberry Pi
 try:
     from picamera2 import Picamera2
@@ -141,7 +142,7 @@ class VisionHandler:
         mask_ball = cv2.morphologyEx(mask_ball, cv2.MORPH_CLOSE, kernel)
         mask_ball = cv2.dilate(mask_ball, kernel, iterations=2)
         
-        mask_ball_show = cv2.cvtColor(roi, cv2.COLOR_LAB2RGB)
+        mask_ball_show = mask_ball.copy()
         mask_ball_show = cv2.line(mask_ball_show, (480, 0), (480, 540), (255, 0, 0), 2)
 
         contours, _ = cv2.findContours(mask_ball, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -191,8 +192,8 @@ class VisionHandler:
                 with self.shared.lock:
                     self.shared.data["ball_on_view"] = False
         with self.shared.lock:
-            self.shared.frames[0x04] = mask_ball_show
-            self.shared.frames[0x03] = mask_ball
+            self.shared.frames[0x02] = mask_ball_show
+            #self.shared.frames[0x03] = mask_ball
     
     def run(self):
         if self.camera:
@@ -259,7 +260,7 @@ class VisionHandler:
 
                 with self.shared.lock:
                     self.shared.frames[0x01] = frame_blur
-                    self.shared.frames[0x02] = lab
+                    #self.shared.frames[0x02] = lab
                 sleep(1 / 30)
 
         except KeyboardInterrupt:

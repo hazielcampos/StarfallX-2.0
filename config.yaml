@@ -22,6 +22,12 @@ ball:
     x2: 960
     y2: 540
 
+  roi_on_bottom:
+    x1: 400
+    y1: 0
+    x2: 960
+    y2: 540
+
 
 goal:
   target_color: "YELLOW"

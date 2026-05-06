@@ -5,6 +5,7 @@ from serial import Serial
 from queue import Queue, Empty
 from threading import Event
 from src.shared import SharedData
+from src.shared import Data
 from src.classes.Messages import *
 logger = logging.getLogger(__name__)
 
@@ -20,10 +21,10 @@ class SensorId:
     IR2 = 0x03
 
 SENSOR_NAMES = {
-    SensorId.US1: "ultrasonic_1",
-    SensorId.US2: "ultrasonic_2",
-    SensorId.IR1: "ir_1",
-    SensorId.IR2: "ir_2",
+    SensorId.US1: Data.ULTRASONIC_1,
+    SensorId.US2: Data.ULTRASONIC_2,
+    SensorId.IR1: Data.IR_1,
+    SensorId.IR2: Data.IR_2,
 }
 
 # ─── CRC-8 ────────────────────────────────────────────────────────
